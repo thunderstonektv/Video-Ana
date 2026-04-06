@@ -31,8 +31,10 @@ def load_data(file_path):
                     room = parts[1].strip()
                     mapping[mac] = room
     
-    # Apply mapping to CUID (MAC ID -> Room Number)
-    df['cuid'] = df['cuid'].astype(str).str.lower().apply(lambda x: mapping.get(x, x))
+    # Apply mapping to CUID (MAC ID -> Room Number), None if not found
+    df['cuid'] = df['cuid'].astype(str).str.lower().apply(lambda x: mapping.get(x, None))
+    # Drop records with no matching room number
+    df = df[df['cuid'].notna()]
     
     # Parse datetime
     df['play_time'] = pd.to_datetime(df['play_time_str'])
