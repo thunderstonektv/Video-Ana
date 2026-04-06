@@ -14,6 +14,26 @@ def load_data(file_path):
     # Filter for model 2
     df = df[df['product_id'] == 2].copy()
     
+    # Load MAC to Room mapping
+    import os
+    mapping = {}
+    map_file = "Mac to Room.txt"
+    if not os.path.exists(map_file):
+        map_file = r"C:\Users\Dell\Documents\Mac to Room.txt"
+    if os.path.exists(map_file):
+        with open(map_file, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("PRO|Room"): continue
+                parts = line.split("|") if "|" in line else line.split("(")
+                if len(parts) >= 2 and parts[1].strip():
+                    mac = parts[0].strip().lower()
+                    room = parts[1].strip()
+                    mapping[mac] = room
+    
+    # Apply mapping to CUID (MAC ID -> Room Number)
+    df['cuid'] = df['cuid'].astype(str).str.lower().apply(lambda x: mapping.get(x, x))
+    
     # Parse datetime
     df['play_time'] = pd.to_datetime(df['play_time_str'])
     df = df.sort_values(by=['cuid', 'play_time'])
